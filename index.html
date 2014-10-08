@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8 />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<link rel="apple-touch-icon" href="images/icon.png">
+	<title>天气预报</title>
+	<link rel="stylesheet" href="css/jquery.mobile-1.4.4.min.css" />
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.mobile-1.4.4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/stylesheet.css">
+</head>
+<body>
+<div data-role="page">
+	<div data-role="panel" id="left-panel" data-theme="c">
+	    <ul data-theme="d" data-role="listview">
+	    	<li data-icon="delete"><a href="#" data-rel="close">关闭</a></li>
+	    	<li data-role="list-divider">选择一个城市</li>
+	    	<li><a href="#" class="city" data-rel="close">北京</a></li>
+	    	<li><a href="#" class="city" data-rel="close">上海</a></li>
+	    	<li><a href="#" class="city" data-rel="close">天津</a></li>
+	    	<li><a href="#" class="city" data-rel="close">杭州</a></li>
+	    	<li><a href="#" class="city" data-rel="close">温州</a></li>
+	    	<li><a href="#" class="city" data-rel="close">广州</a></li>
+	    	<li><a href="#" class="city" data-rel="close">香港</a></li>
+	    </ul>
+	</div><!-- /panel -->
+
+	<div data-role="header" data-position="fixed" data-theme="c">
+		<h1>天气预报</h1>
+		<a href="#left-panel" data-icon="bars" data-role="button" data-iconpos="notext" data-iconshadow="false">菜单</a>
+	</div><!-- /header -->
+
+	<div data-role="content" class="content">
+		<h1 id="location"></h1>
+		
+		<h3 id="date0"></h3>
+		<h3 id="summary0"></h3>
+		<h3 id="temp0"></h3>
+		<hr>
+		<h3 id="date1"></h3>
+		<h3 id="summary1"></h3>
+		<h3 id="temp1"></h3>
+		<hr>
+		<h3 id="date2"></h3>
+		<h3 id="summary2"></h3>
+		<h3 id="temp2"></h3>
+	</div><!-- /content -->
+
+</div><!-- /page -->
+<script>
+	function loadWeather(city){
+		var forecastUrl = "http://api.map.baidu.com/telematics/v3/weather?location=" + city + "&output=json&ak=CA6774b5840389238f4e46d08347c0d1";
+
+		$.ajax({
+			url: forecastUrl,
+			jsonpCallback: "jsonCallback",
+			contentType: "application/json",
+			dataType: 'jsonp',
+			success: function(json){
+				var result = json.results[0];
+				var data;
+				var pm25 = result.pm25;
+				$('#location').html(city);
+				for(var i = 0; i <=2; i++){
+					data = result.weather_data[i];
+					showWeather(data, i, pm25);
+				}
+			},
+			error: function(e){
+				console.log(e.message);
+			}
+		});
+	}
+
+	function showWeather(data, nodeIndex, pm25){
+		var summary = data.weather + " " + data.wind;
+		$('#summary' + nodeIndex).html(summary);
+		
+		var pictureUrl;
+		var now = new Date();
+		if(nodeIndex == 0){
+			$('#date' + nodeIndex).html(data.date + " <br>PM 2.5: " + pm25);
+			if(now.getHours() >= 6 && now.getHours() <= 18){
+				pictureUrl = data.dayPictureUrl;
+			} else {
+				pictureUrl = data.nightPictureUrl;
+			}
+		}else{
+			$('#date' + nodeIndex).html(data.date);
+			pictureUrl = data.dayPictureUrl;
+		}
+		
+		var icon = "<img src='" + pictureUrl + "' />";
+		$('#temp' + nodeIndex).html(icon + " " + data.temperature);
+	}
+
+	loadWeather("北京");
+	$('a.city').on('click', function(){
+		loadWeather($(this).html());
+	});
+</script>
+</body>
+</html>
